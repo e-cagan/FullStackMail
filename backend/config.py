@@ -10,4 +10,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.urandom(24).hex()
 
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SECURE"] = False  # Development için False, production için True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
 db = SQLAlchemy(app)

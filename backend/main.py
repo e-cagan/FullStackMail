@@ -12,6 +12,16 @@ model = joblib.load('model/model.pkl')
 def index():
     return jsonify({"message": "Welcome to the IsMailSpam app!"})
 
+@app.route('/check_auth', methods=['GET'])
+def check_auth():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            return jsonify({
+                'authenticated': True,
+                'user': user.to_json()
+            }), 200
+    return jsonify({'authenticated': False}), 200
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -41,18 +51,23 @@ def register():
         try:
             db.session.commit()
         except Exception as e:
-            db.session.rollback()  # Hata durumunda rollback yap
+            db.session.rollback()
             return jsonify({"error": str(e)}), 500
 
         return jsonify({"message": "User registered successfully", "user": new_user.to_json()}), 200
     else:
         return jsonify({"message": "Please register"}), 200
 
-
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+    print("Request method:", request.method)
+    print("Headers:", request.headers)
+    print("JSON Body:", request.get_data())
+
     if request.method == 'POST':
-        data = request.get_json()
+        data = request.get_json(force=True, silent=True)
+        print("Parsed JSON:", data)
+
         username = data.get('username')
         password = data.get('password')
 
@@ -64,31 +79,34 @@ def login():
         if not user or not check_password_hash(user.password, password):
             return jsonify({"error": "Invalid username or password"}), 401
         
+        # Session'a kullanıcı ID'sini kaydet
+        session['user_id'] = user.id
+        session['username'] = user.username
+        
         response = jsonify({"message": "Login successful", "user": user.to_json()})
-        response.set_cookie('session_id', httponly=True, secure=False)
         
         return response, 200
 
     else:
         return jsonify({"message": "Please log in"}), 200
-    
 
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({"message": "Logged out successfully"}), 200
 
-
 @app.route('/change_password', methods=['POST', 'GET'])
 @login_required
 def change_password():
     if request.method == 'POST':
         data = request.get_json()
-        user_id = data.get('user_id')
         old_password = data.get('old_password')
         new_password = data.get('new_password')
+        
+        # Session'dan kullanıcı ID'sini al
+        user_id = session.get('user_id')
 
-        if not user_id or not old_password or not new_password:
+        if not old_password or not new_password:
             return jsonify({"error": "Missing required fields"}), 400
         
         if old_password == new_password:
@@ -104,13 +122,12 @@ def change_password():
         try:
             db.session.commit()
         except Exception as e:
-            db.session.rollback()  # Hata durumunda rollback yap
+            db.session.rollback()
             return jsonify({"error": str(e)}), 500
 
         return jsonify({"message": "Password changed successfully"}), 200
     else:
         return jsonify({"message": "Please change your password"}), 200
-    
 
 @app.route('/users', methods=['GET'])
 @login_required
@@ -120,108 +137,98 @@ def get_users():
     
     return jsonify({"users": users_json}), 200
 
-
 @app.route('/emails', methods=['GET'])
 @login_required
 def get_emails():
     user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "User not logged in"}), 401
     
     # Kullanıcıya ait e-posta verilerini almak
-    emails = Email.query.filter_by(recipient_id=user_id).all()
+    emails = Email.query.filter_by(recipient_id=user_id, is_spam=False).all()
 
     # Eğer hiç e-posta yoksa
     if not emails:
-        return jsonify({"error": "No emails found"}), 404
+        return jsonify({"emails": []}), 200  # 404 yerine boş liste dön
 
     # E-postaların JSON formatında döndürülmesi
     return jsonify({
         "emails": [email.to_json() for email in emails]
     })
 
-
 @app.route('/emails/sent', methods=['GET'])
 @login_required
 def get_sent_emails():
-    user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing required fields"}), 400
+    user_id = session.get('user_id')
     
     sent_emails = Email.query.filter_by(sender_id=user_id).all()
     sent_emails_json = [email.to_json() for email in sent_emails]
     
     return jsonify({"sent_emails": sent_emails_json}), 200
 
-
 @app.route('/emails/received', methods=['GET'])
 @login_required
 def get_received_emails():
-    user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing required fields"}), 400
+    user_id = session.get('user_id')
     
     received_emails = Email.query.filter_by(recipient_id=user_id).all()
     received_emails_json = [email.to_json() for email in received_emails]
     
     return jsonify({"received_emails": received_emails_json}), 200
 
-
 @app.route('/emails/spam', methods=['GET'])
 @login_required
 def get_spam_emails():
-    user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing required fields"}), 400
+    user_id = session.get('user_id')
     
     spam_emails = Email.query.filter_by(recipient_id=user_id, is_spam=True).all()
     spam_emails_json = [email.to_json() for email in spam_emails]
     
     return jsonify({"spam_emails": spam_emails_json}), 200
 
-
 @app.route('/emails/<int:email_id>', methods=['GET'])
 @login_required
 def get_email_details(email_id):
-    email = Email.query.get(email_id)
+    user_id = session.get('user_id')
+    
+    email = Email.query.filter_by(id=email_id).first()
     if not email:
         return jsonify({"error": "Email not found"}), 404
     
+    # Kullanıcı bu emailin alıcısı veya göndericisi mi kontrol et
+    if email.recipient_id != user_id and email.sender_id != user_id:
+        return jsonify({"error": "Unauthorized access"}), 403
+    
     return jsonify(email.to_json()), 200
-
 
 @app.route('/send_email', methods=['POST', 'GET'])
 @login_required
 def send_email():
     if request.method == 'POST':
         user_id = session.get('user_id')
-        if not user_id:
-            return jsonify({"error": "User not logged in"}), 401
         
         data = request.get_json()
-        sender_id = data.get('sender_id')
         recipient_id = data.get('recipient_id')
         subject = data.get('subject')
         body = data.get('body')
 
-        if user_id != sender_id:
-            return jsonify({"error": "You can only send emails from your own account"}), 400
-
-        if not sender_id or not recipient_id or not subject or not body:
+        if not recipient_id or not subject or not body:
             return jsonify({"error": "Missing required fields"}), 400
 
         # Kullanıcılar mevcut mu kontrol et
-        sender = User.query.get(sender_id)
         recipient = User.query.get(recipient_id)
 
-        if not sender or not recipient:
-            return jsonify({"error": "Invalid sender or recipient"}), 404
+        if not recipient:
+            return jsonify({"error": "Invalid recipient"}), 404
 
         # Modeli kullanarak spam olup olmadığını tahmin et
-        is_spam = bool(model.predict([body])[0])
+        is_spam = False
+        try:
+            is_spam = bool(model.predict([body])[0])
+        except Exception as e:
+            # Model hatası olursa, spam olmadığını varsay ve devam et
+            print(f"Spam detection error: {str(e)}")
 
         new_email = Email(
-            sender_id=sender_id,
+            sender_id=user_id,
             recipient_id=recipient_id,
             subject=subject,
             body=body,
@@ -233,40 +240,48 @@ def send_email():
         try:
             db.session.commit()
         except Exception as e:
-            db.session.rollback()  # Hata durumunda rollback yap
+            db.session.rollback()
             return jsonify({"error": str(e)}), 500
 
         return jsonify({"message": "Email sent successfully", "email": new_email.to_json()}), 200
     else:
         return jsonify({"message": "Please send an email"}), 200
-    
 
-@app.route('/email/<int:email_id>', methods=['DELETE', 'POST', 'PUT'])
+@app.route('/email/<int:email_id>/action', methods=['POST'])
 @login_required
-def modify_email(email_id):
-    action = request.args.get('action')
+def email_action(email_id):
     user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"error": "User not logged in"}), 401
+    data = request.get_json()
+    action = data.get('action')
 
-    email = Email.query.filter_by(id=email_id, recipient_id=user_id).first()
+    email = Email.query.filter_by(id=email_id).first()
     if not email:
         return jsonify({"error": "Email not found"}), 404
 
+    # Kullanıcı bu emailin alıcısı mı kontrol et
+    if email.recipient_id != user_id:
+        return jsonify({"error": "Unauthorized access"}), 403
+
     if action == 'archive':
-        email.archived = True  # Arşivle
+        email.is_archived = True
     elif action == 'unarchive':
-        email.archived = False  # Arşivden çıkar
+        email.is_archived = False
     elif action == 'read':
-        email.read = True  # Okundu olarak işaretle
+        email.is_read = True
+    elif action == 'unread':
+        email.is_read = False
     elif action == 'delete':
-        db.session.delete(email)  # Sil
+        db.session.delete(email)
     else:
         return jsonify({"error": "Invalid action"}), 400
 
-    db.session.commit()
-    return jsonify({"message": f"Email {action}d successfully"}), 200
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
+    return jsonify({"message": f"Email {action}d successfully"}), 200
 
 if __name__ == '__main__':
     with app.app_context():
