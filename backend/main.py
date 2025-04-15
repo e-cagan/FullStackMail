@@ -1,5 +1,6 @@
 from flask import request, jsonify, session
 from config import app, db
+from sqlalchemy import desc
 from models import User, Email
 from helpers import login_required
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -95,7 +96,7 @@ def logout():
     session.clear()
     return jsonify({"message": "Logged out successfully"}), 200
 
-@app.route('/change_password', methods=['POST', 'GET'])
+@app.route('/change-password', methods=['POST', 'GET'])
 @login_required
 def change_password():
     if request.method == 'POST':
@@ -143,7 +144,7 @@ def get_emails():
     user_id = session.get('user_id')
     
     # Kullanıcıya ait e-posta verilerini almak
-    emails = Email.query.filter_by(recipient_id=user_id, is_spam=False).all()
+    emails = Email.query.filter_by(recipient_id=user_id, is_spam=False, is_archived=False).order_by(desc(Email.created_at)).all()
 
     # Eğer hiç e-posta yoksa
     if not emails:
@@ -159,17 +160,27 @@ def get_emails():
 def get_sent_emails():
     user_id = session.get('user_id')
     
-    sent_emails = Email.query.filter_by(sender_id=user_id).all()
+    sent_emails = Email.query.filter_by(sender_id=user_id, is_archived=False).order_by(desc(Email.created_at)).all()
     sent_emails_json = [email.to_json() for email in sent_emails]
     
     return jsonify({"sent_emails": sent_emails_json}), 200
+
+@app.route('/emails/read', methods=['GET'])
+@login_required
+def get_read_emails():
+    user_id = session.get('user_id')
+    
+    read_emails = Email.query.filter_by(recipient_id=user_id, is_read=True, is_spam=False).order_by(desc(Email.created_at)).all()
+    read_emails_json = [email.to_json() for email in read_emails]
+    
+    return jsonify({"read_emails": read_emails_json}), 200
 
 @app.route('/emails/received', methods=['GET'])
 @login_required
 def get_received_emails():
     user_id = session.get('user_id')
     
-    received_emails = Email.query.filter_by(recipient_id=user_id).all()
+    received_emails = Email.query.filter_by(recipient_id=user_id, is_spam=False, is_archived=False).order_by(desc(Email.created_at)).all()
     received_emails_json = [email.to_json() for email in received_emails]
     
     return jsonify({"received_emails": received_emails_json}), 200
@@ -179,10 +190,20 @@ def get_received_emails():
 def get_spam_emails():
     user_id = session.get('user_id')
     
-    spam_emails = Email.query.filter_by(recipient_id=user_id, is_spam=True).all()
+    spam_emails = Email.query.filter_by(recipient_id=user_id, is_spam=True).order_by(desc(Email.created_at)).all()
     spam_emails_json = [email.to_json() for email in spam_emails]
     
     return jsonify({"spam_emails": spam_emails_json}), 200
+
+@app.route('/emails/archived', methods=['GET'])
+@login_required
+def get_archived_emails():
+    user_id = session.get('user_id')
+    
+    archived_emails = Email.query.filter_by(recipient_id=user_id, is_archived=True).order_by(desc(Email.created_at)).all()
+    archived_emails_json = [email.to_json() for email in archived_emails]
+    
+    return jsonify({"archived_emails": archived_emails_json}), 200
 
 @app.route('/emails/<int:email_id>', methods=['GET'])
 @login_required
@@ -210,6 +231,9 @@ def send_email():
         subject = data.get('subject')
         body = data.get('body')
 
+        if not subject or not body:
+            return jsonify({"error": "Missing required fields"}), 400
+
         if not recipient_id or not subject or not body:
             return jsonify({"error": "Missing required fields"}), 400
 
@@ -222,7 +246,7 @@ def send_email():
         # Modeli kullanarak spam olup olmadığını tahmin et
         is_spam = False
         try:
-            is_spam = bool(model.predict([body])[0])
+            is_spam = bool(model.predict([body])[0]) or bool(model.predict([subject])[0])
         except Exception as e:
             # Model hatası olursa, spam olmadığını varsay ve devam et
             print(f"Spam detection error: {str(e)}")
@@ -258,8 +282,12 @@ def email_action(email_id):
     if not email:
         return jsonify({"error": "Email not found"}), 404
 
-    # Kullanıcı bu emailin alıcısı mı kontrol et
-    if email.recipient_id != user_id:
+    # E-postayı arşivleyecek veya silecek kişinin alıcı olması gerekir
+    if action in ['archive', 'unarchive', 'delete'] and email.recipient_id != user_id:
+        return jsonify({"error": "Unauthorized action"}), 403
+    
+    # Göndericinin sadece kendi kopyasını işaretlemesine izin verelim
+    if action in ['read', 'unread'] and email.recipient_id != user_id and email.sender_id != user_id:
         return jsonify({"error": "Unauthorized access"}), 403
 
     if action == 'archive':
