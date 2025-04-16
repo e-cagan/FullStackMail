@@ -22,7 +22,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Full API URL:", `${apiUrl}/login`);
+    console.log("Full API URL:", `https://ismailspam.onrender.com/login`);
 
     setLoading(true);
     setError('');
