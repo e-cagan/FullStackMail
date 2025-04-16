@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch(`${apiUrl}/check_auth`, {
+        const response = await fetch(`https://ismailspam.onrender.com/check_auth`, {
           credentials: 'include'
         });
 
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await fetch(`${apiUrl}/register`, {
+      const response = await fetch(`https://ismailspam.onrender.com/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch(`${apiUrl}/logout`, {
+      await fetch(`https://ismailspam.onrender.com/logout`, {
         method: 'POST',
         credentials: 'include'
       });

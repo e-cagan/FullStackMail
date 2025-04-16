@@ -17,7 +17,7 @@ const EmailDetail = () => {
       setError('');
       
       try {
-        const response = await fetch(`${apiUrl}/emails/${emailId}`, {
+        const response = await fetch(`https://ismailspam.onrender.com/emails/${emailId}`, {
           credentials: 'include'
         });
 
@@ -31,7 +31,7 @@ const EmailDetail = () => {
         // Fetch sender info
         if (data.sender_id) {
           try {
-            const usersResponse = await fetch(`${apiUrl}/users`, {
+            const usersResponse = await fetch(`https://ismailspam.onrender.com/users`, {
               credentials: 'include'
             });
             
@@ -47,7 +47,7 @@ const EmailDetail = () => {
         
         // Mark email as read if not already
         if (!data.is_read) {
-          await fetch(`${apiUrl}/email/${emailId}/action`, {
+          await fetch(`https://ismailspam.onrender.com/email/${emailId}/action`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -68,7 +68,7 @@ const EmailDetail = () => {
 
   const handleAction = async (action) => {
     try {
-      const response = await fetch(`${apiUrl}/email/${emailId}/action`, {
+      const response = await fetch(`https://ismailspam.onrender.com/email/${emailId}/action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

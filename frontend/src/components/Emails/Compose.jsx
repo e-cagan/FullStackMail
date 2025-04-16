@@ -25,7 +25,7 @@ const Compose = () => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {
-        const response = await fetch(`${apiUrl}/users`, {
+        const response = await fetch(`https://ismailspam.onrender.com/users`, {
           credentials: 'include'
         });
 
@@ -45,7 +45,7 @@ const Compose = () => {
     const fetchReplyEmail = async () => {
       if (replyToId) {
         try {
-          const response = await fetch(`${apiUrl}/emails/${replyToId}`, {
+          const response = await fetch(`https://ismailspam.onrender.com/emails/${replyToId}`, {
             credentials: 'include'
           });
 
@@ -87,7 +87,7 @@ const Compose = () => {
     setError('');
 
     try {
-      const response = await fetch(`${apiUrl}/send_email`, {
+      const response = await fetch(`https://ismailspam.onrender.com/send_email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

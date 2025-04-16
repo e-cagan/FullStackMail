@@ -34,7 +34,7 @@ const ChangePassword = () => {
     }
 
     try {
-      const response = await fetch(`${apiUrl}/change-password`, {
+      const response = await fetch(`https://ismailspam.onrender.com/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

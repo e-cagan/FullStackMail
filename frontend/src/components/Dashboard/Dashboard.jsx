@@ -21,19 +21,19 @@ const Dashboard = () => {
         let endpoint;
         switch (activeTab) {
           case 'sent':
-            endpoint = `${apiUrl}/emails/sent`;
+            endpoint = `https://ismailspam.onrender.com/emails/sent`;
             break;
           case 'read':
-            endpoint = `${apiUrl}/emails/read`;
+            endpoint = `https://ismailspam.onrender.com/emails/read`;
             break;
           case 'spam':
-            endpoint = `${apiUrl}/emails/spam`;
+            endpoint = `https://ismailspam.onrender.com/emails/spam`;
             break;
           case 'archived':
-            endpoint = `${apiUrl}/emails/archived`;
+            endpoint = `https://ismailspam.onrender.com/emails/archived`;
             break;
           default:
-            endpoint = `${apiUrl}/emails/received`;
+            endpoint = `https://ismailspam.onrender.com/emails/received`;
         }
 
         const response = await fetch(endpoint, {
@@ -75,7 +75,7 @@ const Dashboard = () => {
 
   const handleEmailAction = async (emailId, action) => {
     try {
-      const response = await fetch(`${apiUrl}/email/${emailId}/action`, {
+      const response = await fetch(`https://ismailspam.onrender.com/email/${emailId}/action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

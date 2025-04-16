@@ -26,7 +26,7 @@ const Register = () => {
     setError('');
 
     try {
-      const response = await fetch(`${apiUrl}/register`, {
+      const response = await fetch(`https://ismailspam.onrender.com/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
