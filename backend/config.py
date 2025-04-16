@@ -12,6 +12,6 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev_default_key")
 
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SECURE"] = True  # Development için False, production için True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SAMESITE"] = "None"
 
 db = SQLAlchemy(app)
