@@ -1,1 +1,1 @@
-const apiUrl = "https://ismailspam.onrender.com";
+export const apiUrl = "https://ismailspam.onrender.com";
