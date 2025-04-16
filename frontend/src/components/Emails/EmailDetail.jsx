@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import { apiUrl } from '../../constants'
 
 const EmailDetail = () => {
   const { emailId } = useParams();
@@ -16,7 +17,7 @@ const EmailDetail = () => {
       setError('');
       
       try {
-        const response = await fetch(`http://localhost:5000/emails/${emailId}`, {
+        const response = await fetch(`${apiUrl}/emails/${emailId}`, {
           credentials: 'include'
         });
 
@@ -30,7 +31,7 @@ const EmailDetail = () => {
         // Fetch sender info
         if (data.sender_id) {
           try {
-            const usersResponse = await fetch('http://localhost:5000/users', {
+            const usersResponse = await fetch(`${apiUrl}/users`, {
               credentials: 'include'
             });
             
@@ -46,7 +47,7 @@ const EmailDetail = () => {
         
         // Mark email as read if not already
         if (!data.is_read) {
-          await fetch(`http://localhost:5000/email/${emailId}/action`, {
+          await fetch(`${apiUrl}/email/${emailId}/action`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -67,7 +68,7 @@ const EmailDetail = () => {
 
   const handleAction = async (action) => {
     try {
-      const response = await fetch(`http://localhost:5000/email/${emailId}/action`, {
+      const response = await fetch(`${apiUrl}/email/${emailId}/action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { apiUrl } from '../../constants';
 
 const Compose = () => {
   const { currentUser } = useContext(AuthContext);
@@ -24,7 +25,7 @@ const Compose = () => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {
-        const response = await fetch('http://localhost:5000/users', {
+        const response = await fetch(`${apiUrl}/users`, {
           credentials: 'include'
         });
 
@@ -44,7 +45,7 @@ const Compose = () => {
     const fetchReplyEmail = async () => {
       if (replyToId) {
         try {
-          const response = await fetch(`http://localhost:5000/emails/${replyToId}`, {
+          const response = await fetch(`${apiUrl}/emails/${replyToId}`, {
             credentials: 'include'
           });
 
@@ -86,7 +87,7 @@ const Compose = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/send_email', {
+      const response = await fetch(`${apiUrl}/send_email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

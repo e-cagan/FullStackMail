@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import { apiUrl } from '../../constants'
 
 const ChangePassword = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const ChangePassword = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/change-password', {
+      const response = await fetch(`${apiUrl}/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

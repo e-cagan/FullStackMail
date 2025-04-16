@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
 import EmailList from '../Emails/EmailList';
+import { apiUrl } from '../../constants'
 
 const Dashboard = () => {
   const { currentUser } = useContext(AuthContext);
@@ -20,19 +21,19 @@ const Dashboard = () => {
         let endpoint;
         switch (activeTab) {
           case 'sent':
-            endpoint = 'http://localhost:5000/emails/sent';
+            endpoint = `${apiUrl}/emails/sent`;
             break;
           case 'read':
-            endpoint = 'http://localhost:5000/emails/read';
+            endpoint = `${apiUrl}/emails/read`;
             break;
           case 'spam':
-            endpoint = 'http://localhost:5000/emails/spam';
+            endpoint = `${apiUrl}/emails/spam`;
             break;
           case 'archived':
-            endpoint = 'http://localhost:5000/emails/archived';
+            endpoint = `${apiUrl}/emails/archived`;
             break;
           default:
-            endpoint = 'http://localhost:5000/emails/received';
+            endpoint = `${apiUrl}/emails/received`;
         }
 
         const response = await fetch(endpoint, {
@@ -74,7 +75,7 @@ const Dashboard = () => {
 
   const handleEmailAction = async (emailId, action) => {
     try {
-      const response = await fetch(`http://localhost:5000/email/${emailId}/action`, {
+      const response = await fetch(`${apiUrl}/email/${emailId}/action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

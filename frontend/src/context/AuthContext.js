@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { apiUrl } from '../constants'
 
 export const AuthContext = createContext();
 
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('http://localhost:5000/check_auth', {
+        const response = await fetch(`${apiUrl}/check_auth`, {
           credentials: 'include'
         });
 
@@ -59,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:5000/logout', {
+      await fetch(`${apiUrl}/logout`, {
         method: 'POST',
         credentials: 'include'
       });

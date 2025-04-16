@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiUrl } from '../../constants'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ const Register = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

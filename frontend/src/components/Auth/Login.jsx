@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { apiUrl } from '../../constants'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/login', {
+      const response = await fetch(`${apiUrl}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
