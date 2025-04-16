@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import joblib
 
 # Modeli uygulama başlatıldığında yükle
-model = joblib.load('model/model.pkl')
+model = joblib.load('backend/model/model.pkl')
 
 @app.route('/')
 def index():
