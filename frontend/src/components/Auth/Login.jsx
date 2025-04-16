@@ -22,6 +22,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Full API URL:", `${apiUrl}/login`);
+
     setLoading(true);
     setError('');
 

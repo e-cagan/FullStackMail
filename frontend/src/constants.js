@@ -1,1 +1,1 @@
-export const apiUrl = "https://ismailspam.onrender.com";
+export const apiUrl = process.env.REACT_APP_API_URL || "https://ismailspam.onrender.com";
