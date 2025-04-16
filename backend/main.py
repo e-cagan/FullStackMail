@@ -1,8 +1,8 @@
 from flask import request, jsonify, session
-from config import app, db
+from .config import app, db
 from sqlalchemy import desc
-from models import User, Email
-from helpers import login_required
+from .models import User, Email
+from .helpers import login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 import joblib
 
