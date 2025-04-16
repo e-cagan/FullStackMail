@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { apiUrl } from '../../constants'
+import { apiUrl } from '../../constants';
 
 const ChangePassword = () => {
   const [formData, setFormData] = useState({

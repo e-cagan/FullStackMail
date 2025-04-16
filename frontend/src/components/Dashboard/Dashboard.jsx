@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
 import EmailList from '../Emails/EmailList';
-import { apiUrl } from '../../constants'
+import { apiUrl } from '../../constants';
 
 const Dashboard = () => {
   const { currentUser } = useContext(AuthContext);

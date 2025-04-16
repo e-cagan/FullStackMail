@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { apiUrl } from '../../constants'
+import { apiUrl } from '../../constants';
 
 const EmailDetail = () => {
   const { emailId } = useParams();
